@@ -1,18 +1,10 @@
+import json
+
 import requests
+import json_utils
+from json_utils import parse_json_input
 
 api_key = "7bf849c2c869f9f8cbb3bc77be812fd2"
-
-lat = 63.534023669639
-lon = 8.654453199517995
-
-# -------------------------
-# 1. Vehicle definitions
-# -------------------------
-vehicles = [
-    {"id": "truck_01", "RSWT": "2131"},
-    {"id": "van_02", "RSWT": "3124"},
-    {"id": "scooter_01", "RSWT": "5545"},
-]
 
 # RSWT thresholds
 RSWT_MAP = {
@@ -23,7 +15,7 @@ RSWT_MAP = {
 }
 
 # -------------------------
-# 2. Weather fetching function
+# Weather fetching function
 # -------------------------
 def fetch_weather(api_key, lat, lon):
     """Fetch weather from OpenWeatherMap (example)."""
@@ -49,7 +41,7 @@ def fetch_weather(api_key, lat, lon):
     return weather
 
 # -------------------------
-# 3. Vehicle filtering function
+# Vehicle filtering function
 # -------------------------
 def is_vehicle_suitable(vehicle, weather):
     RSWT = vehicle["RSWT"]
@@ -77,18 +69,31 @@ def is_vehicle_suitable(vehicle, weather):
     return True
 
 # -------------------------
-# 4. Filter fleet
+# Filter fleet
 # -------------------------
-def filter_fleet(vehicles, weather):
-    suitable = [v for v in vehicles if is_vehicle_suitable(v, weather)]
-    return suitable
+def filter_fleet(json_input):
+    lat, lon, vehicles = parse_json_input(json_input)
+
+    # 1. Fetch current weather
+    weather = fetch_weather(api_key, lat, lon)
+
+    # 2. Filter vehicles
+    # (Assuming is_vehicle_suitable is defined as before)
+    suitable_list = [v for v in vehicles if is_vehicle_suitable(v, weather)]
+
+    # 3. Create the required JSON structure
+    result = {
+        "suitable_vehicles": [v["id"] for v in suitable_list]
+    }
+
+    # Optional: Print for debugging
+    print("Result:", json.dumps(result, indent=4))
+
+    return result
 
 # -------------------------
 # 5. Example usage
 # -------------------------
 if __name__ == "__main__":
-    # Example: Use dummy weather or call API
-    weather = fetch_weather(api_key, lat, lon)
 
-    fleet = filter_fleet(vehicles, weather)
-    print("Suitable vehicles:", [v["id"] for v in fleet])
+    fleet = filter_fleet("input.json")
