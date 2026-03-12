@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="41bc4cf6-5483-48a1-a7c5-c5e91914abb5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/eo4eu_weather.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClimateDT_pl_20260312.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/ClimateDT_pl_20260312.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClimateDT_sfc_20260312.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/ClimateDT_sfc_20260312.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eo4eu_weather.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_weather.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/input.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/input.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pl.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/pl.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rswt-check.py" beforeDir="false" afterPath="$PROJECT_DIR$/rswt-check.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sfc.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/sfc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trace_eo4eu.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/trace_eo4eu.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +52,13 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.eo4eu_weather">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/resources" />
+      <recent name="$PROJECT_DIR$/old" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.rswt-check">
     <configuration name="eo4eu_weather" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wms-trace" />
       <option name="ENV_FILES" value="" />
@@ -109,7 +121,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/trace_eo4eu.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/old/trace_eo4eu.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -125,8 +137,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.eo4eu_weather" />
         <item itemvalue="Python.rswt-check" />
+        <item itemvalue="Python.eo4eu_weather" />
         <item itemvalue="Python.trace_eo4eu" />
       </list>
     </recent_temporary>
@@ -156,11 +168,11 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/trace_eo4eu.py</url>
+          <url>file://$PROJECT_DIR$/eo4eu_template_code/trace_eo4eu.py</url>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/sfc.py</url>
+          <url>file://$PROJECT_DIR$/eo4eu_template_code/sfc.py</url>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>

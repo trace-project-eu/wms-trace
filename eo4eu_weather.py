@@ -1,10 +1,12 @@
 import base64
 import time
+import math
+import json
+import os
+import requests
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_result
 from eo4eu_api_utils import Client
-import requests
-import os
 
 # -------------------------
 # Configuration
@@ -16,7 +18,7 @@ WORKFLOW_ID = "f61488fb-9d1a-4bad-ad5b-dd2b1b95db88"
 
 
 # -------------------------
-# Tenacity Retry Helpers
+# Helpers
 # -------------------------
 def is_none(value):
     return value is None
@@ -36,12 +38,22 @@ def connect_to_client(url, username, password):
     return Client(url, username, password)
 
 
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Calculates the great-circle distance between two points on the Earth surface in km."""
+    R = 6371.0  # Earth radius in kilometers
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = (math.sin(dlat / 2) ** 2 +
+         math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
 # -------------------------
 # Dynamic Script Generators
 # -------------------------
 def generate_polytope_script(levtype, param, points, levelist=None):
     """Generates the Polytope Python script dynamically with the current date."""
-    # Always gets the current date in YYYYMMDD format
     current_date = datetime.now().strftime("%Y%m%d")
 
     script = f"""from polytope.api import Client
@@ -84,66 +96,69 @@ files = client.retrieve('destination-earth', request, output_file="ClimateDT_{le
     return script, current_date
 
 
-def download_presigned_urls(bucket_contents):
+def fetch_json_from_urls(bucket_contents):
     """
-    Takes the output from list_s3_bucket and downloads the ClimateDT JSON files.
+    Takes the S3 bucket contents, downloads the JSON directly to memory,
+    prints it, and returns the parsed dictionaries.
     """
+    sfc_data = None
+    pl_data = None
+
     for item in bucket_contents:
         file_path = item.get('name', '')
         download_url = item.get('presignedUrl')
 
-        # We only want to download the weather data files, skipping metainfo.json
-        if "ClimateDT" in file_path and download_url:
-            # Extract just the filename from the path (e.g., "ClimateDT_pl_20260312.json")
-            filename = os.path.basename(file_path)
+        if "ClimateDT_sfc" in file_path and download_url:
+            print(f"\n⬇️ Fetching {os.path.basename(file_path)} into memory...")
+            sfc_data = requests.get(download_url).json()
+            print("--- SFC JSON Content ---")
+            print(json.dumps(sfc_data, indent=2))
 
-            print(f"⬇️ Downloading {filename}...")
+        elif "ClimateDT_pl" in file_path and download_url:
+            print(f"\n⬇️ Fetching {os.path.basename(file_path)} into memory...")
+            pl_data = requests.get(download_url).json()
+            print("--- PL JSON Content ---")
+            print(json.dumps(pl_data, indent=2))
 
-            # Standard HTTP GET request using the requests library
-            response = requests.get(download_url)
-
-            if response.status_code == 200:
-                with open(filename, 'wb') as f:
-                    f.write(response.content)
-                print(f"✅ Successfully saved {filename}")
-            else:
-                print(f"❌ Failed to download {filename}. HTTP Status: {response.status_code}")
+    return sfc_data, pl_data
 
 
 # -------------------------
 # Main Execution Function
 # -------------------------
-def fetch_current_eo4eu_data(points=[[38.5, 23], [37, 24.5]]):
+def fetch_current_eo4eu_data(lat, lon):
     """
-    Executes the EO4EU workflow to fetch surface and pressure level data.
-    Returns the date string used, which helps locate the generated output files.
+    Executes the EO4EU workflow for a fixed bounding box, processes the results in-memory,
+    finds the closest point to the requested POI, and returns a JSON string with the weather data.
     """
     client = connect_to_client(EO4EU_URL, EO4EU_USERNAME, EO4EU_PASSWORD)
     print("✅ Connected to EO4EU API.")
 
-    # 1. Generate scripts dynamically
+    # 1. Use the strictly required fixed bounding box points
+    fixed_points = [[38.5, 23], [37, 24.5]]
+
+    # 2. Generate scripts dynamically using the fixed points
     sfc_script, current_date = generate_polytope_script(
         levtype="sfc",
         param="144/141/228/260048",
-        points=points
+        points=fixed_points
     )
 
     pl_script, _ = generate_polytope_script(
         levtype="pl",
         param="130/131/132/129",
-        points=points,
+        points=fixed_points,
         levelist="500"
     )
 
-    # 2. Encode payloads
+    # 3. Encode payloads and start Workflow
     encoded_scripts = [
         base64.b64encode(s.encode("ascii")).decode("ascii") for s in [pl_script, sfc_script]
     ]
 
-    # 3. Update and Start Workflow
     client.workflow_update(WORKFLOW_ID, {"query": encoded_scripts, "meta": " "})
     client.workflow_start(WORKFLOW_ID)
-    print(f"🚀 Workflow started for date: {current_date}")
+    print(f"🚀 Workflow started for date: {current_date} evaluating POI ({lat}, {lon}) inside fixed box {fixed_points}")
 
     # 4. Wait for completion
     while True:
@@ -154,20 +169,90 @@ def fetch_current_eo4eu_data(points=[[38.5, 23], [37, 24.5]]):
         elif status in ['FAILED', 'ERROR']:
             print(f"❌ Workflow failed with status: {status}")
             return None
-        print(f"⏳ Workflow status: {status}. Sleeping 10s...")
+        print(f"⏳ Workflow status: {status}. Please wait...")
         time.sleep(10)
 
-    # 5. List and (Optionally) Download from S3
-    print("\n📦 Listing S3 bucket contents:")
+    # 5. Fetch S3 links and load JSON to memory
     content = client.list_s3_bucket(WORKFLOW_ID)
-    print(content)
+    sfc_data, pl_data = fetch_json_from_urls(content)
 
-    # 6. Download the files using the standard requests library
-    download_presigned_urls(content)
+    if not sfc_data or not pl_data:
+        print("❌ Failed to retrieve one or both JSON data files.")
+        return None
 
-    return current_date
+    # 6. Find the closest contained point
+    # Note: Using coverages[0] assuming we want the first forecast step (00:00)
+    coords = sfc_data['coverages'][0]['domain']['axes']['composite']['values']
+
+    min_dist = float('inf')
+    closest_idx = -1
+    closest_coord = None
+
+    for idx, coord in enumerate(coords):
+        c_lat, c_lon, _ = coord  # Extracts latitude, longitude, levelist
+        dist = haversine_distance(lat, lon, c_lat, c_lon)
+        if dist < min_dist:
+            min_dist = dist
+            closest_idx = idx
+            closest_coord = (c_lat, c_lon)
+
+    print(f"\n📍 Closest point found at ({closest_coord[0]:.4f}, {closest_coord[1]:.4f}) with a distance of {min_dist:.2f} km.")
+
+    # 7. Extract weather variables for the closest point
+    temp_k = pl_data['coverages'][0]['ranges']['t']['values'][closest_idx]
+    u_wind = pl_data['coverages'][0]['ranges']['u']['values'][closest_idx]
+    v_wind = pl_data['coverages'][0]['ranges']['v']['values'][closest_idx]
+    total_precip_m = sfc_data['coverages'][0]['ranges']['tp']['values'][closest_idx]
+    snowfall_m = sfc_data['coverages'][0]['ranges']['sf']['values'][closest_idx]
+
+    # 8. Calculate conditions based on original thresholds logic
+    temp_c = temp_k - 273.15
+    wind_speed_kmh = math.sqrt(u_wind ** 2 + v_wind ** 2) * 3.6
+    rain_mmh = (total_precip_m - snowfall_m) * 1000  # simplified approx
+    snow_cmh = snowfall_m * 100  # simplified approx
+
+    weather = {
+        "rain": rain_mmh,
+        "snow": snow_cmh,
+        "wind": wind_speed_kmh,
+        "temp": temp_c
+    }
+
+    print(f"\n  Current Climate-DT Conditions for requested location ({lat:.4f}, {lon:.4f}):\n")
+    print(f"  🌧️ Rain:         {weather['rain']:.1f} mm/h")
+    print(f"  ❄️ Snow:         {weather['snow']:.1f} cm/h")
+    print(f"  💨 Wind Speed:   {weather['wind']:.1f} km/h")
+    print(f"  🌡️ Temperature:  {weather['temp']:.1f} °C")
+    print("-" * 45)
+
+    # 9. Create and return the final JSON payload
+    result_payload = {
+        "poi": {
+            "lat": lat,
+            "lon": lon
+        },
+        "closest_point": {
+            "lat": closest_coord[0],
+            "lon": closest_coord[1],
+            "distance_km": round(min_dist, 2)
+        },
+        "weather": {
+            "rain_mmh": round(rain_mmh, 2),
+            "snow_cmh": round(snow_cmh, 2),
+            "wind_kmh": round(wind_speed_kmh, 2),
+            "temp_c": round(temp_c, 2)
+        }
+    }
+
+    print("\n📦 Final Processed Output JSON:")
+    print(json.dumps(result_payload, indent=4))
+
+    return result_payload
 
 
 if __name__ == "__main__":
-    # Test execution
-    fetch_current_eo4eu_data()
+    # Example usage with a Point of Interest (e.g., somewhere near Athens)
+    lat = 37.9838
+    lon = 23.7275
+
+    final_weather_json = fetch_current_eo4eu_data(lat, lon)
