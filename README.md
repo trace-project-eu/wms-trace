@@ -1,51 +1,28 @@
-# Fleet Weather & RSWT Suitability Checker
+# Fleet RSWT Weather Checker
 
-A Python-based tool to evaluate and filter a fleet of vehicles based on real-time weather conditions at a specific Point of Interest (POI). 
+This tool checks if a fleet of vehicles can safely operate at a specific location (POI) based on real-time weather conditions. It compares the current weather against each vehicle's **RSWT (Rain, Snow, Wind, Temperature)** limits.
 
-This script determines if a vehicle can safely operate in a given area by comparing current weather data against the vehicle's **RSWT (Rain, Snow, Wind, Temperature)** capability thresholds. It primarily fetches high-fidelity DestinE Climate-DT data via the **EO4EU API** and seamlessly falls back to the **OpenWeatherMap API** if the EO4EU grid data is too far away or unavailable.
-
----
-
-## Features
-
-* **Dual-Source Weather Routing:** Attempts to fetch weather via an asynchronous EO4EU workflow first. If the workflow fails, times out, or the closest EO4EU grid point is more than 50 km from the POI, it falls back to OpenWeatherMap.
-* **In-Memory Data Processing:** Downloads massive Polytope/Climate-DT S3 JSON payloads directly into memory using pre-signed URLs—avoiding local disk clutter.
-* **Haversine Distance Matching:** Automatically calculates the great-circle distance to find the exact Climate-DT grid point closest to your POI.
-* **Dynamic RSWT Filtering:** Evaluates each vehicle against strict operational thresholds for Rain (mm/h), Snow (cm/h), Wind (km/h), and Temperature (°C).
+It fetches high-quality weather data from the **EO4EU API** and automatically falls back to **OpenWeatherMap** if the data is unavailable, takes longer than 3 minutes to download, or is too far away.
 
 ---
 
-## Project Structure
+## Setup & Installation
 
-* **`rswt-check.py`**: The main execution script. Orchestrates the fetching of weather, handles the fallback logic, and filters the vehicle fleet.
-* **`eo4eu_weather.py`**: Interacts with the EO4EU API. Generates dynamic Polytope payloads, polls the workflow status, fetches S3 links, parses the meteorological parameters (U/V wind vectors, temp, precip), and calculates distances.
-* **`json_utils.py`**: Helper functions to safely parse the input JSON file containing the POI and fleet data.
+1. **Install requirements:**
+
+    pip install -r requirements.txt
+
+2. **Set up API Keys:** * Update the EO4EU and OpenWeatherMap credentials directly inside `eo4eu_weather.py` and `rswt-check.py`.
+    * Make sure your DestinE environment variables (`DESTINY_USER_EMAIL`, `DESTINY_API_KEY`) are active on your system.
+
+---
+
+## Project Files
+
+* **`rswt-check.py`**: The main script you will run.
+* **`eo4eu_weather.py`**: Handles the EO4EU connection and the 5-minute timeout.
+* **`json_utils.py`**: A small helper file to read your input data.
 * **`requirements.txt`**: Lists all the Python dependencies required to run the project.
-* **`.gitignore`**: Prevents caching files, virtual environments, local logs, and temporary JSON payloads from being committed to the repository.
-
----
-
-## Prerequisites & Installation
-
-* **Python 3.8+**
-
-Install all the required standard Python packages at once using the `requirements.txt` file:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Configuration
-
-Before running the application, you need to configure your API credentials. 
-
-**Important:** Currently, credentials for EO4EU and OpenWeatherMap are hardcoded in the `.py` files. It is highly recommended to move these to environment variables (e.g., `.env`) before deploying to production.
-
-* **EO4EU Credentials:** Located at the top of `eo4eu_weather.py` (`EO4EU_USERNAME`, `EO4EU_PASSWORD`, `WORKFLOW_ID`).
-* **DestinE Credentials:** Required for the Polytope payload. Ensure `DESTINY_USER_EMAIL` and `DESTINY_API_KEY` are set as system environment variables.
-* **OpenWeatherMap API Key:** Located in `rswt-check.py` (`api_key`).
 
 ---
 
@@ -54,44 +31,36 @@ Before running the application, you need to configure your API credentials.
 The script reads the POI and fleet data from a JSON file (by default, it looks for `resources/input.json`).
 
 **Example `input.json` structure:**
-```json
-{
-  "poi": {
-    "lat": 37.9838,
-    "lon": 23.7275
-  },
-  "vehicles": [
+
     {
-      "id": "truck_01",
-      "RSWT": "2131"
-    },
-    {
-      "id": "van_02",
-      "RSWT": "3124"
-    },
-    {
-      "id": "scooter_01",
-      "RSWT": "5545"
+      "poi": {
+        "lat": 37.9838,
+        "lon": 23.7275
+      },
+      "vehicles": [
+        {
+          "id": "truck_01",
+          "RSWT": "2131"
+        },
+        {
+          "id": "van_02",
+          "RSWT": "3124"
+        },
+        {
+          "id": "scooter_01",
+          "RSWT": "5545"
+        }
+      ]
     }
-  ]
-}
-```
+
 *Note: The `RSWT` string maps to specific threshold levels (1-5) for Rain, Snow, Wind, and Temperature defined in `rswt-check.py`.*
 
 ---
 
-## Usage
+## How to Run
 
-To run the fleet suitability check, execute the main script from your terminal:
+Simply execute the main script in your terminal:
 
-```bash
-python rswt-check.py
-```
+    python rswt-check.py
 
-### Expected Output Process:
-1. The script will attempt to connect to the EO4EU API.
-2. It will submit the dynamically generated Polytope scripts and wait for the workflow to complete.
-3. It downloads the `pl` and `sfc` JSON coverages into memory and prints the closest found grid point.
-4. If the point is within 50 km, it prints the extracted weather and filters the fleet.
-5. If the point is >50 km away, it prints a warning and fetches OpenWeatherMap data instead.
-6. Outputs a final JSON dictionary containing the `"suitable_vehicles"`.
+The script will display the weather conditions it found, let you know if it had to use the OpenWeatherMap fallback, and output the final list of suitable vehicles.
