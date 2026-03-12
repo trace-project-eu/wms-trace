@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="41bc4cf6-5483-48a1-a7c5-c5e91914abb5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClimateDT_pl_20260312.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/ClimateDT_pl_20260312.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClimateDT_sfc_20260312.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/ClimateDT_sfc_20260312.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eo4eu_weather.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_weather.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/input.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/input.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pl.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/pl.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rswt-check.py" beforeDir="false" afterPath="$PROJECT_DIR$/rswt-check.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sfc.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/sfc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trace_eo4eu.py" beforeDir="false" afterPath="$PROJECT_DIR$/eo4eu_template_code/trace_eo4eu.py" afterDir="false" />
-    </list>
+    <list default="true" id="41bc4cf6-5483-48a1-a7c5-c5e91914abb5" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
