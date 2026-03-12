@@ -1,9 +1,6 @@
 import json
 import requests
-import json_utils
 from json_utils import parse_json_input
-
-# Import our newly created EO4EU module
 from eo4eu_weather import fetch_current_eo4eu_data
 
 api_key = "7bf849c2c869f9f8cbb3bc77be812fd2"
@@ -89,7 +86,7 @@ def filter_fleet(json_input):
         print("❌ Error: Invalid or missing POI in input JSON.")
         return {"error": "Invalid POI"}
 
-    # 1. Attempt to fetch current weather from EO4EU
+    # 1. Attempt to fetch current weather from EO4EU with an internal 5-minute timeout
     print(f"\n🌍 Attempting to fetch primary weather data from EO4EU for ({lat}, {lon})...")
 
     eo4eu_payload = None
@@ -97,8 +94,8 @@ def filter_fleet(json_input):
     weather = None
 
     try:
-        # This will internally print the EO4EU JSON payload as requested
-        eo4eu_payload = fetch_current_eo4eu_data(lat, lon)
+        # Pass the 180 seconds (3 minutes) directly into the fetcher
+        eo4eu_payload = fetch_current_eo4eu_data(lat, lon, timeout_sec=180)
     except Exception as e:
         print(f"\n⚠️ EO4EU API execution error: {e}")
 
