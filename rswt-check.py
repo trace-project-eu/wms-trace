@@ -118,7 +118,7 @@ from eo4eu_api_utils import Client
 EO4EU_URL = 'https://umm-api.apps.eo4eu.eu'
 EO4EU_USERNAME = 'apapakot'
 EO4EU_PASSWORD = 'Trace@2026'
-WORKFLOW_ID = "e25c4288-f84c-4bf9-9e00-73a74510c161"
+WORKFLOW_ID = "1c762b47-b804-40cc-957f-08f40be9c7da"
 
 # RSWT thresholds
 RSWT_MAP = {
@@ -193,7 +193,7 @@ def fetch_weather_eo4eu(lat, lon):
         elif status in ['FAILED', 'ERROR']:
             print(f"❌ Workflow failed with status: {status}")
             return None
-        print(f"   Status: {status}. Sleeping 10s...")
+        print(f"   Status: {status}. Please wait...")
         time.sleep(10)
 
     # 4. Fetch the results from S3

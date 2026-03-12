@@ -48,7 +48,7 @@ def connect_to_client(url, username, password):
 url = 'https://umm-api.apps.eo4eu.eu'
 username = 'apapakot'
 password = 'Trace@2026'
-workflow_id = "e25c4288-f84c-4bf9-9e00-73a74510c161"
+workflow_id = "1c762b47-b804-40cc-957f-08f40be9c7da"
 
 client = connect_to_client(url, username, password)
 print("Connected to EO4EU API.")
