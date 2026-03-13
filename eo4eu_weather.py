@@ -14,7 +14,7 @@ from eo4eu_api_utils import Client
 EO4EU_URL = 'https://umm-api.apps.eo4eu.eu'
 EO4EU_USERNAME = 'apapakot'
 EO4EU_PASSWORD = 'Trace@2026'
-WORKFLOW_ID = "f61488fb-9d1a-4bad-ad5b-dd2b1b95db88"
+WORKFLOW_ID = "1f4bbf98-ebf6-4717-bbf9-42528986e100"
 
 
 # -------------------------
@@ -126,7 +126,7 @@ def fetch_current_eo4eu_data(lat, lon, timeout_sec=180):
     fixed_points = [[38.5, 23], [37, 24.5]]
 
     sfc_script, current_date = generate_polytope_script(levtype="sfc", param="144/141/228/260048", points=fixed_points)
-    pl_script, _ = generate_polytope_script(levtype="pl", param="130/131/132/129", points=fixed_points, levelist="500")
+    pl_script, _ = generate_polytope_script(levtype="pl", param="130/131/132/129", points=fixed_points, levelist="1000")
 
     encoded_scripts = [base64.b64encode(s.encode("ascii")).decode("ascii") for s in [pl_script, sfc_script]]
 
