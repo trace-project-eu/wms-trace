@@ -8,29 +8,30 @@ It fetches high-quality weather data from the **EO4EU API** and automatically fa
 
 ## Setup & Installation
 
-1. **Install requirements:**
+1. **Install requirements (if running locally):**
 
     pip install -r requirements.txt
 
-2. **Set up API Keys:** * Update the EO4EU and OpenWeatherMap credentials directly inside `eo4eu_weather.py` and `rswt-check.py`.
-    * Make sure your DestinE environment variables (`DESTINY_USER_EMAIL`, `DESTINY_API_KEY`) are active on your system.
+2. **Set up API Keys:** * Update the EO4EU and OpenWeatherMap credentials directly inside `eo4eu_weather.py` and `rswt_check.py`.
 
 ---
 
 ## Project Files
 
-* **`rswt-check.py`**: The main script you will run.
-* **`eo4eu_weather.py`**: Handles the EO4EU connection and the 5-minute timeout.
-* **`json_utils.py`**: A small helper file to read your input data.
-* **`requirements.txt`**: Lists all the Python dependencies required to run the project.
+* **`app.py`**: The Flask web server that turns the checker into a REST API.
+* **`rswt_check.py`**: The core script handling the weather fallback and filtering logic (renamed with an underscore for API compatibility).
+* **`eo4eu_weather.py`**: Handles the EO4EU connection and the 3-minute timeout.
+* **`json_utils.py`**: A helper file to safely read your input data from local files or API payloads.
+* **`test_api.py`**: A quick script to test your running API.
+* **`Dockerfile`**: Containerizes the application so it always runs perfectly, regardless of your local environment.
 
 ---
 
 ## Input Format
 
-The script reads the POI and fleet data from a JSON file (by default, it looks for `resources/input.json`).
+The tool accepts data either from a JSON file (like `resources/input.json`) or directly via an API `POST` request payload.
 
-**Example `input.json` structure:**
+**Example JSON structure:**
 
     {
       "poi": {
@@ -53,14 +54,26 @@ The script reads the POI and fleet data from a JSON file (by default, it looks f
       ]
     }
 
-*Note: The `RSWT` string maps to specific threshold levels (1-5) for Rain, Snow, Wind, and Temperature defined in `rswt-check.py`.*
+*Note: The `RSWT` string maps to specific threshold levels (1-5) for Rain, Snow, Wind, and Temperature defined in `rswt_check.py`.*
 
 ---
 
 ## How to Run
 
-Simply execute the main script in your terminal:
+You can now run this tool in two different ways:
 
-    python rswt-check.py
+### Option 1: Run as a REST API (Docker)
+This runs the tool as a background web server that can constantly accept incoming requests.
 
-The script will display the weather conditions it found, let you know if it had to use the OpenWeatherMap fallback, and output the final list of suitable vehicles.
+1. Build the Docker image:
+    docker build -t fleet-rswt-api .
+
+2. Run the container (inserting your real keys)
+
+3. Test the API by running the tester script in your terminal:
+    python test_api.py
+
+### Option 2: Run Locally (Terminal)
+If you just want to run a one-off test against a local file without using the API:
+
+    python rswt_check.py
