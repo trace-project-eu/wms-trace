@@ -1,6 +1,8 @@
 import json
 import requests
-from json_utils import parse_json_input
+
+# Import custom modules
+from json_utils import parse_json_input, parse_dict_input
 from eo4eu_weather import fetch_current_eo4eu_data
 
 api_key = "7bf849c2c869f9f8cbb3bc77be812fd2"
@@ -79,14 +81,21 @@ def is_vehicle_suitable(vehicle, weather):
 # -------------------------
 # Filter fleet
 # -------------------------
-def filter_fleet(json_input):
-    lat, lon, vehicles = parse_json_input(json_input)
+def filter_fleet(input_data):
+    # Determine if input is a file path (terminal usage) or dictionary (Flask API usage)
+    if isinstance(input_data, str):
+        lat, lon, vehicles = parse_json_input(input_data)
+    elif isinstance(input_data, dict):
+        lat, lon, vehicles = parse_dict_input(input_data)
+    else:
+        print("❌ Error: Invalid input data format.")
+        return {"error": "Invalid input data format"}
 
     if lat is None or lon is None:
         print("❌ Error: Invalid or missing POI in input JSON.")
         return {"error": "Invalid POI"}
 
-    # 1. Attempt to fetch current weather from EO4EU with an internal 5-minute timeout
+    # 1. Attempt to fetch current weather from EO4EU with an internal timeout
     print(f"\n🌍 Attempting to fetch primary weather data from EO4EU for ({lat}, {lon})...")
 
     eo4eu_payload = None

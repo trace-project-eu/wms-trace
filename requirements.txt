@@ -1,4 +1,5 @@
 eo4eu_api_utils==0.1.7
+Flask==3.1.3
 polytope==0.2.5
 polytope_client==0.7.9
 Requests==2.32.5
